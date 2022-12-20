@@ -1,0 +1,52 @@
+from keras.preprocessing.text import one_hot
+from numpy import array
+from keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import Flatten
+from keras.layers import Embedding
+from keras.layers.convolutional import Conv1D
+from keras.layers.convolutional import MaxPooling1D
+# define documents
+docs = ["Add you Documents, X"]
+# define class labels
+labels = array(["Add class label, Y"])
+# integer encode the documents
+vocab_size = 50
+encoded_docs = [one_hot(d, vocab_size) for d in docs]
+print(encoded_docs)
+# pad documents to a max length of 4 words
+max_length = 4
+padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
+print(padded_docs)
+# define the model
+model = Sequential()
+model.add(Embedding(vocab_size, 64, input_length=max_length))
+model.add(Conv1D(filters=12, kernel_size=2, activation='relu'))
+model.add(MaxPooling1D(pool_size=2))
+model.add(Flatten())
+model.add(Dense(1, activation='sigmoid'))
+print(model.summary())
+# compile network
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+# fit network
+model.fit(padded_docs, labels, epochs=10, verbose=2)
+# evaluate
+loss, acc = model.evaluate(padded_docs, labels, verbose=0)
+print('Test Accuracy: %f' % (acc*100))
+#to output of each layer.
+from tensorflow.keras import backend as K
+layerIndex = 4
+func = K.function([model.get_layer(index=0).input], model.get_layer(index=layerIndex).output)
+layerOutput = func([padded_docs])  # input_data is a numpy array
+print(layerOutput)
+# har 3 raveshe zir baraye  bedast avardane  weight estefade  mishe.
+print('------------------------------------------------------------------------------------------')
+print(model.layers[4].weights)
+print('------------------------------------------------------------------------------------------')
+kernel_1 = model.layers[4].get_weights()
+print('kernel_1:')
+print(kernel_1)
+x= model.get_layer(index=4).get_weights()
+print('--------------------------------------')
+print(x)
